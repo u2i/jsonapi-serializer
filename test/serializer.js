@@ -1913,7 +1913,7 @@ describe('JSON API Serializer', function () {
             count: 1
           }
         }
-      }).serialize(dataSet);
+      }).serialize(dataSet); // WHY U NO DESERIALIZE?
 
       expect(json.data[0].relationships.addresses.meta).eql({
         count: 1
@@ -1969,6 +1969,91 @@ describe('JSON API Serializer', function () {
       expect(json.data[0].relationships.addresses.meta).eql({
         count: 1
       });
+
+      done(null, json);
+    });
+  });
+
+  describe('Related Meta (Function) inside an compound document', function () {
+    it('should be set', function (done) {
+      var dataSet = {
+        id: '54735750e16638ba1eee59cb',
+        firstName: 'Sandro',
+        lastName: 'Munda',
+        address: {
+          addressLine1: '406 Madison Court',
+          zipCode: '49426',
+          country: 'USA'
+        },
+      };
+
+      var json = new JSONAPISerializer('users', {
+        topLevelLinks: {
+          self: 'http://localhost:3000/api/users'
+        },
+        attributes: ['firstName', 'lastName', 'address'],
+        address: {
+          ref: 'zipCode',
+          attributes: ['addressLine1', 'country'],
+          meta: {
+            addressMetaAttribute: 'ajsgdfg kbasd'
+          }
+        }
+      }).serialize(dataSet);
+
+      // expect(json.data[0].relationships.address.meta).eql({
+      //   count: 1
+      // });
+      expect(json.included[0].meta).eql({
+        addressMetaAttribute: 'ajsgdfg kbasd'
+      })
+
+      done(null, json);
+    });
+  });
+
+  describe('Related Meta (Function) inside an compound array document', function () {
+    it('should be set', function (done) {
+      var dataSet = [{
+        id: '54735750e16638ba1eee59cb',
+        firstName: 'Sandro',
+        lastName: 'Munda',
+        address: {
+          addressLine1: '406 Madison Court',
+          zipCode: '49426',
+          country: 'USA'
+        },
+      }, {
+        id: '54735750e16638ba1eee59cd',
+        firstName: 'John',
+        lastName: 'Doe',
+        address: {
+          addressLine1: '407 Broken Dreams Blvd',
+          zipCode: '494123',
+          country: 'PL'
+        },
+      }];
+
+      var json = new JSONAPISerializer('users', {
+        topLevelLinks: {
+          self: 'http://localhost:3000/api/users'
+        },
+        attributes: ['firstName', 'lastName', 'address'],
+        address: {
+          ref: 'zipCode',
+          attributes: ['addressLine1', 'country'],
+          meta: {
+            addressMetaAttribute: 'ajsgdfg kbasd'
+          }
+        }
+      }).serialize(dataSet);
+
+      // expect(json.data[0].relationships.address.meta).eql({
+      //   count: 1
+      // });
+      expect(json.included[0].meta).eql({
+        addressMetaAttribute: 'ajsgdfg kbasd'
+      })
 
       done(null, json);
     });

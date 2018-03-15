@@ -1282,6 +1282,94 @@ describe('JSON API Deserializer', function () {
      });
   });
 
+  describe('meta for relationships', function () {
+    it('should be included', () => {
+      var dataSet = {
+        data: {
+          type: 'users',
+          id: '54735750e16638ba1eee59cb',
+          attributes: {
+            'first-name': 'Sandro',
+            'last-name': 'Munda'
+          },
+          relationships: {
+            address: {
+              data: {type: 'addresses', id: '54735722e16620ba1eee36af'},
+              meta: {addressMetaAttribute: 'meta value'}
+            }
+          }
+        },
+        included: [{
+          type: 'addresses',
+          id: '54735722e16620ba1eee36af',
+          attributes: {
+            'address-line1': '406 Madison Court',
+            'zip-code': '49426',
+            country: 'USA'
+          }
+        }]
+      }
+
+      return new JSONAPIDeserializer()
+        .deserialize(dataSet)
+        .then(json => {
+          expect(json.address).to.be.eql({
+            id: '54735722e16620ba1eee36af',
+            'address-line1': '406 Madison Court',
+            'zip-code': '49426',
+            country: 'USA',
+            meta: {
+              addressMetaAttribute: 'meta value'
+            }
+          })
+        })
+    })
+  })
+
+  describe('meta for relationships', function () {
+    it('should be included', () => {
+      var dataSet = {
+        data: {
+          type: 'users',
+          id: '54735750e16638ba1eee59cb',
+          attributes: {
+            'first-name': 'Sandro',
+            'last-name': 'Munda'
+          },
+          relationships: {
+            car: {
+              data: [{type: 'cars', id: 'asdfasdfasdfasfd'}],
+              meta: {carMetaAttribute: 'car meta value'}
+            }
+          }
+        },
+        included: [{
+          type: 'addresses',
+          id: '54735722e16620ba1eee36af',
+          attributes: {
+            'address-line1': '406 Madison Court',
+            'zip-code': '49426',
+            country: 'USA'
+          }
+        }]
+      }
+
+      return new JSONAPIDeserializer()
+        .deserialize(dataSet)
+        .then(json => {
+          expect(json.address).to.be.eql({
+            id: '54735722e16620ba1eee36af',
+            'address-line1': '406 Madison Court',
+            'zip-code': '49426',
+            country: 'USA',
+            meta: {
+              addressMetaAttribute: 'meta value'
+            }
+          })
+        })
+    })
+  })
+
   describe('links', function () {
     it('should be included', function (done) {
       var dataSet = {
