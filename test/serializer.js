@@ -1974,6 +1974,136 @@ describe('JSON API Serializer', function () {
     });
   });
 
+  describe('Related data meta', function () {
+    describe('when relationship is an object', function () {
+      var dataSet = [{
+        id: '54735750e16638ba1eee59cb',
+        firstName: 'Sandro',
+        lastName: 'Munda',
+        address: {
+          id: 'uuid1',
+          addressLine1: '2 Union Square',
+          zipCode: '10003',
+          country: 'USA'
+        }
+      }]
+
+      describe('when meta is an object', function () {
+        it('should be set', function () {
+          var json = new JSONAPISerializer('users', {
+            attributes: ['firstName', 'lastName', 'address'],
+            address: {
+              ref: 'id',
+              attributes: ['addressLine1', 'zipCode', 'country'],
+              dataMeta: {
+                exist: true
+              }
+            }
+          }).serialize(dataSet)
+
+          expect(json.included[0]).to.have.property('meta')
+          expect(json.included[0].meta).to.deep.eq({
+            exist: true
+          })
+
+        })
+      })
+
+      describe('when meta is a function', function () {
+        it('should be set', function () {
+
+          var json = new JSONAPISerializer('users', {
+            attributes: ['firstName', 'lastName', 'address'],
+            address: {
+              ref: 'id',
+              attributes: ['addressLine1', 'zipCode', 'country'],
+              dataMeta: {
+                exist: function (record, current) {
+                  return current.country === 'USA'
+                }
+              }
+
+            }
+          }).serialize(dataSet)
+
+          expect(json.included[0]).to.have.property('meta')
+          expect(json.included[0].meta).to.deep.eq({
+            exist: true
+          })
+        })
+      })
+    })
+
+    describe('when relationship is an array', function () {
+      var dataSet = [{
+        id: '54735750e16638ba1eee59cb',
+        firstName: 'Sandro',
+        lastName: 'Munda',
+        addresses: [{
+          id: 'uuid1',
+          addressLine1: '2 Union Square',
+          zipCode: '10003',
+          country: 'USA'
+        }, {
+          id: 'uuid2',
+          addressLine1: '2 Nowhere',
+          zipCode: '10003',
+          country: 'Narnia'
+        }]
+      }]
+
+      describe('when meta is an object', function () {
+        it('should be set', function () {
+          var json = new JSONAPISerializer('users', {
+            attributes: ['firstName', 'lastName', 'addresses'],
+            addresses: {
+              ref: 'id',
+              attributes: ['addressLine1', 'zipCode', 'country'],
+              dataMeta: {
+                exist: true
+              }
+            }
+          }).serialize(dataSet)
+
+          expect(json.included[0]).to.have.property('meta')
+          expect(json.included[0].meta).to.deep.eq({
+            exist: true
+          })
+          expect(json.included[1]).to.have.property('meta')
+          expect(json.included[1].meta).to.deep.eq({
+            exist: true
+          })
+        })
+      })
+
+      describe('when meta is a function', function () {
+        it('should be set', function () {
+          var json = new JSONAPISerializer('users', {
+            attributes: ['firstName', 'lastName', 'addresses'],
+            addresses: {
+              ref: 'id',
+              attributes: ['addressLine1', 'zipCode', 'country'],
+              dataMeta: {
+                exist: function (record, current) {
+                  return current.country === 'USA'
+                }
+              }
+            }
+          }).serialize(dataSet)
+
+          expect(json.included[0]).to.have.property('meta')
+          expect(json.included[0].meta).to.deep.eq({
+            exist: true
+          })
+          expect(json.included[1]).to.have.property('meta')
+          expect(json.included[1].meta).to.deep.eq({
+            exist: false
+          })
+        })
+      })
+    })
+  })
+
   describe('Duplicate compound document', function () {
     it('should not have duplicated entries into included', function (done) {
       var dataSet = [{
@@ -1985,7 +2115,7 @@ describe('JSON API Serializer', function () {
           addressLine1: '406 Madison Court',
           zipCode: '49426',
           country: 'USA'
-        },
+        }
       }, {
         id: '5490143e69e49d0c8f9fc6bc',
         firstName: 'Lawrence',
