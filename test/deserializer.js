@@ -291,6 +291,44 @@ describe('JSON API Deserializer', function () {
 
     });
 
+    describe('with relationship data meta', function () {
+      it('should merge included with meta', function () {
+        var dataSet = {
+          data: {
+            type: 'users',
+            id: '54735750e16638ba1eee59c1',
+            attributes: {'first-name': 'John', 'last-name': 'Doe'},
+            relationships: {address: {data: {type: 'addresses', id: 'uuid1'}}}
+          },
+          included: [{
+            type: 'addresses',
+            id: 'uuid1',
+            attributes: {'address-line1': '2 Union Square', 'zip-code': '10003', country: 'USA'},
+            meta: {exist: true}
+          }]
+        };
+
+        return new JSONAPIDeserializer({
+          keyForAttribute: 'camelCase'
+        }).deserialize(dataSet, function (err, json) {
+          expect(json).to.be.eql({
+            id: '54735750e16638ba1eee59c1',
+            firstName: 'John',
+            lastName: 'Doe',
+            address: {
+              id: 'uuid1',
+              addressLine1: '2 Union Square',
+              zipCode: '10003',
+              country: 'USA',
+              meta: {
+                exist: true
+              }
+            }
+          });
+        });
+      });
+    });
+
     describe('With multiple levels', function () {
       it('should merge all include relationships to attributes', function (done) {
         var dataSet = {
